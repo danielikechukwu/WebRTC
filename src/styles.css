@@ -59,9 +59,9 @@
 body {
   font-weight: 300;
   font-size: 13px;
-  @apply h-dvh w-full overflow-hidden font-inter text-sm text-gray-100 border border-red-500
+  @apply h-dvh w-full overflow-hidden font-inter text-sm text-gray-100
 }
 
 .video {
-  @apply w-full h-55 md:h-80 bg-gray-100;
+  @apply w-full h-55 md:h-80 bg-gray-100 object-fill;
 }

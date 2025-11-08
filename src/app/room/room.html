@@ -1,5 +1,5 @@
-<div class="border border-red-600 h-full bg-gray-800 flex flex-col justify-center">
-    <span>Permission: {{permissionStatus()}}</span>
+<div class="h-full bg-gray-800 flex flex-col justify-center">
+    <!-- <span>Permission: {{permissionStatus()}}</span> -->
     <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="remoteStream().length > 0 ? 'md:grid-cols-2' : 'grid-cols-1'">
         <video class="video" #videoElement autoplay playsInline></video>
         @for(participants of remoteStream(); track $index) {
@@ -40,10 +40,16 @@
             </span>
 
             <span class="flex flex-col items-center p-2">
-                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="shareScreen()">
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer"
+                    (click)="isSharingScreen() ? stopScreenShare() : shareScreen()">
                     <img src="/icons/screen-share.svg" alt="screen-share">
                 </span>
+                @if(isSharingScreen()) {
+                <span>Stop</span>
+                }
+                @else {
                 <span>Share</span>
+                }
             </span>
 
             <span class="flex flex-col items-center p-2">
