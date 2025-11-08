@@ -51,11 +51,17 @@
 }
 
 @theme {
-    
-    /* fonts */
-    --fonts-inter: Inter, sans-serif;
+
+  /* fonts */
+  --font-inter: Inter, sans-serif;
 }
 
 body {
-    @apply h-dvh w-full overflow-hidden bg-red0-500 border border-red-500
+  font-weight: 300;
+  font-size: 13px;
+  @apply h-dvh w-full overflow-hidden font-inter text-sm text-gray-100 border border-red-500
+}
+
+.video {
+  @apply w-full h-55 md:h-80 bg-gray-100;
 }

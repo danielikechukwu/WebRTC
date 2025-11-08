@@ -1,1 +1,65 @@
-<p>room works!</p>
+<div class="border border-red-600 h-full bg-gray-800 flex flex-col justify-center">
+    <span>Permission: {{permissionStatus()}}</span>
+    <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="remoteStream().length > 0 ? 'md:grid-cols-2' : 'grid-cols-1'">
+        <video class="video" #videoElement autoplay playsInline></video>
+        @for(participants of remoteStream(); track $index) {
+        <video class="video" #videoElement autoplay playsInline></video>
+        }
+    </div>
+    <div class="self-center absolute bottom-0">
+
+        <div class="flex flex-row md:p-3 md:gap-3">
+
+            <span class="flex flex-col items-center p-2">
+                @if(isCameraEnabled()) {
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleVideo()">
+                    <img src="/icons/cam-on.svg" alt="cam-on">
+                </span>
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="requestFullAccess()">
+                    <img src="/icons/cam-off.svg" alt="cam-on">
+                </span>
+                }
+
+                <span>Cam</span>
+            </span>
+
+            <span class="flex flex-col items-center p-2">
+                @if(isAudioEnabled()) {
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleAudio()">
+                    <img src="/icons/mic-on.svg" alt="mic-on">
+                </span>
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="requestFullAccess()">
+                    <img src="/icons/mic-off.svg" alt="mic-on">
+                </span>
+                }
+                <span>Mic</span>
+            </span>
+
+            <span class="flex flex-col items-center p-2">
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="shareScreen()">
+                    <img src="/icons/screen-share.svg" alt="screen-share">
+                </span>
+                <span>Share</span>
+            </span>
+
+            <span class="flex flex-col items-center p-2">
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="chat()">
+                    <img src="/icons/chat.svg" alt="chat">
+                </span>
+                <span>Chat</span>
+            </span>
+
+            <span class="flex flex-col items-center p-2">
+                <span class="p-3 rounded-xl mb-1 bg-[#F04438] cursor-pointer" (click)="leaveMeeting()">
+                    <img src="/icons/waiting-room.svg" alt="waiting-room">
+                </span>
+                <span>Leave</span>
+            </span>
+
+        </div>
+    </div>
+</div>
