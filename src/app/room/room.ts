@@ -10,8 +10,9 @@ import { CommonModule } from '@angular/common';
 })
 export default class Room implements OnInit {
   protected localStream = signal<LocalStream>({ name: 'Peter' });
-  protected remoteStream = signal<LocalStream[]>([{ name: 'Jasme' }]);
+  protected remoteParticipants = signal<LocalStream[]>([{ name: 'Jasme' }]);
   private mediaStream: MediaStream | null = null;
+  private remoteStream: MediaStream | null = null;
 
   protected permissionStatus = signal<string>('Not requested');
   protected isCameraEnabled = signal<boolean>(false);
@@ -26,11 +27,14 @@ export default class Room implements OnInit {
   private audioContext: AudioContext | null = null;
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('remoteVideoElement') remoteVideoElement!: ElementRef<HTMLVideoElement>;
 
   ngOnInit(): void {
     this.checkPermissions(); // Accessing permission
 
     //this.requestMediaAccess(); // Permission to access media devices
+
+    this.createOffer();
   }
 
   async checkPermissions(): Promise<any> {
@@ -161,9 +165,13 @@ export default class Room implements OnInit {
     this.combinedStream = null;
   }
 
-  chat() {}
+  chat() {
+    console.log('Chat');
+  }
 
-  leaveMeeting() {}
+  leaveMeeting() {
+    console.log('Leave the meeting')
+  }
 
   stopMediaAccess(): void {
     if (this.mediaStream) {
@@ -172,4 +180,21 @@ export default class Room implements OnInit {
       this.permissionStatus.set('Access stopped');
     }
   }
+
+createOffer() {
+
+  const myPeerConnection = new RTCPeerConnection();
+
+  myPeerConnection.createOffer()
+  .then((offer) => {
+    myPeerConnection.setLocalDescription(offer);
+    console.log('Offer: ', offer)
+
+    this.remoteStream = new MediaStream();
+    this.remoteVideoElement.nativeElement.srcObject = this.remoteStream;
+  })
+  .catch((err) => {
+    console.log('Offer Error: ', err)
+  })
+}
 }

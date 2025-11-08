@@ -1,4 +1,15 @@
-<div>
-    <span>verify user</span>
-    <button type="button" class="border border-red-500 cursor-pointer p-2" [routerLink]="['/app']">Proceed</button>
+<div class="h-full flex flex-row">
+    <div class="h-full w-[60%] bg-gray-800 hidden md:block"></div>
+    <div class="md:w-[40%] w-full flex justify-center">
+        <div class="self-center items-center flex-1 mx-9">
+            <span class="text-gray-800 font-bold flex justify-self-center">Welcome to comference meeting</span>
+            <div class="my-3 flex flex-col gap-2">
+                <label for="name">Name</label>
+                <input type="text" placeholder="Enter name" [(ngModel)]="localUser" class="form-control">
+            </div>
+            <button
+                class="my-3 w-full py-2 rounded-md text-gray-100 bg-gray-800 cursor-pointer outline-none hover:bg-gray-700 transition duration-400 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:bg-gray-700"
+                [disabled]="localUser().trim() === ''" [routerLink]="['/app']">Start Call</button>
+        </div>
+    </div>
 </div>

@@ -1,9 +1,9 @@
 <div class="h-full bg-gray-800 flex flex-col justify-center">
     <!-- <span>Permission: {{permissionStatus()}}</span> -->
-    <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="remoteStream().length > 0 ? 'md:grid-cols-2' : 'grid-cols-1'">
+    <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="remoteParticipants().length > 0 ? 'md:grid-cols-2' : 'grid-cols-1'">
         <video class="video" #videoElement autoplay playsInline></video>
-        @for(participants of remoteStream(); track $index) {
-        <video class="video" #videoElement autoplay playsInline></video>
+        @for(participants of remoteParticipants(); track $index) {
+        <video class="video" #remoteVideoElement autoplay playsInline></video>
         }
     </div>
     <div class="self-center absolute bottom-0">
