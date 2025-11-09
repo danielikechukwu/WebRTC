@@ -39,6 +39,8 @@ export default class Room implements OnInit {
   protected localUsername = signal<string>('');
   protected remoteUsername = signal<string>('');
 
+  protected isMeetingStarted = signal<boolean>(false);
+
   // New variables
   peerConnection!: RTCPeerConnection;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
@@ -248,6 +250,7 @@ export default class Room implements OnInit {
       event.streams[0].getTracks().forEach((track) => {
         this.remoteStream?.addTrack(track);
         this.isRemoteConnected.set(true);
+        this.isMeetingStarted.set(true);
       });
       console.log('Remote track received');
     };
