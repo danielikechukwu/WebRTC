@@ -34,6 +34,7 @@ export default class Room implements OnInit {
   private micStream: MediaStream | null = null;
   private audioContext: AudioContext | null = null;
   private pendingCandidates: RTCIceCandidateInit[] = [];
+  protected isRemoteConnected = signal<boolean>(false);
 
   protected localUsername = signal<string>('');
   protected remoteUsername = signal<string>('');
@@ -242,9 +243,11 @@ export default class Room implements OnInit {
     this.remoteStream = new MediaStream();
     this.remoteVideoElement.nativeElement.srcObject = this.remoteStream;
 
+    // Remote track is added
     this.peerConnection.ontrack = (event) => {
       event.streams[0].getTracks().forEach((track) => {
         this.remoteStream?.addTrack(track);
+        this.isRemoteConnected.set(true);
       });
       console.log('Remote track received');
     };
