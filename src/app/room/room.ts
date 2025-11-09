@@ -286,7 +286,7 @@ protected remoteUsername = signal<string>('');
   // async handleOffer(offer: RTCSessionDescriptionInit) {
     async handleOffer(offer: any) {
     console.log('Handling received offer');
-
+console.log('Username in offer: ', offer.username);
     this.remoteUsername.set(offer.username || 'Guest'); // Capture remote username
 
     this.createPeerConnection();
@@ -315,6 +315,7 @@ protected remoteUsername = signal<string>('');
   // async handleAnswer(answer: RTCSessionDescriptionInit) {
     async handleAnswer(answer: any) {
     console.log('Handling received answer');
+    console.log('Username in answer: ', answer.username);
     this.remoteUsername.set(answer.username || 'Guest'); // Capture remote username
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 
