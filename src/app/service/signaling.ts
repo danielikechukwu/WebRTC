@@ -12,7 +12,9 @@ export class SignalingService {
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => console.log('Connected to signaling server');
+
     this.ws.onmessage = (event) => {
+      
       const data = JSON.parse(event.data);
       console.log('Message from server:', data);
       if (this.onMessageCallback) this.onMessageCallback(data);

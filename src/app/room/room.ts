@@ -40,10 +40,11 @@ export default class Room implements OnInit {
   @ViewChild('remoteVideoElement') remoteVideoElement!: ElementRef<HTMLVideoElement>;
 
   async ngOnInit() {
-    this.checkPermissions();
+    this.checkPermissions(); // Check for media permission
 
     // this.signaling.connect('ws://192.168.0.3:8080');
     this.signaling.connect('https://webrtc-signaling-server-o8h1.onrender.com');
+
     this.signaling.onMessage((data) => this.handleSignalingData(data));
   }
 
@@ -224,6 +225,11 @@ export default class Room implements OnInit {
     this.peerConnection.ontrack = (event) =>
       event.streams[0].getTracks().forEach((t) => remoteStream.addTrack(t));
 
+        // create offer
+    const offer = await this.peerConnection.createOffer();
+    await this.peerConnection.setLocalDescription(offer);
+    this.signaling.send({ type: 'offer', offer });
+
     // ICE
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
@@ -232,10 +238,6 @@ export default class Room implements OnInit {
       }
     };
 
-    // create offer
-    const offer = await this.peerConnection.createOffer();
-    await this.peerConnection.setLocalDescription(offer);
-    this.signaling.send({ type: 'offer', offer });
   }
 
   async handleSignalingData(data: any) {
