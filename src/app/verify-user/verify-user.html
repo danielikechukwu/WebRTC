@@ -9,7 +9,7 @@
             </div>
             <button
                 class="my-3 w-full py-2 rounded-md text-gray-100 bg-gray-800 cursor-pointer outline-none hover:bg-gray-700 transition duration-400 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:bg-gray-700"
-                [disabled]="localUser().trim() === ''" [routerLink]="['/app']">Start Call</button>
+                (click)="startCall()">Start Call</button>
         </div>
     </div>
 </div>

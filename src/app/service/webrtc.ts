@@ -3,10 +3,10 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
-export class Webrtc {
+export class WebrtcService {
   private localStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
-  private peerConnection!: RTCPeerConnection;
+  public peerConnection!: RTCPeerConnection;
 
   // STUN and TURN Servers
   private server: RTCConfiguration = {
@@ -15,18 +15,28 @@ export class Webrtc {
     ],
   };
 
-  // Create Peerconnection
-  public createPeerConnection(): void {
-    this.peerConnection = new RTCPeerConnection(this.server);
+public createPeerConnection(onIceCandidate: (candidate: RTCIceCandidateInit) => void): void {
+  const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+  this.peerConnection = new RTCPeerConnection(configuration);
+  this.remoteStream = new MediaStream();
 
-    // Handle remote stream
-    this.remoteStream = new MediaStream();
-    this.peerConnection.ontrack = (event) => {
-      event.streams[0].getTracks().forEach((track) => {
-        this.remoteStream?.addTrack(track);
-      });
-    };
-  }
+  // Add ICE candidate handler
+  this.peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      console.log('💠 Sending ICE candidate:', event.candidate);
+      onIceCandidate(event.candidate.toJSON());
+    }
+  };
+
+  // Receive remote track
+  this.peerConnection.ontrack = (event) => {
+    console.log('🎥 Received remote track');
+    event.streams[0].getTracks().forEach((track) => {
+      this.remoteStream?.addTrack(track);
+    });
+  };
+}
+
 
   // Add local stream track to peer
   public addLocalTracks(): void {

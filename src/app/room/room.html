@@ -1,10 +1,16 @@
 <div class="h-full bg-gray-800 flex flex-col justify-center">
+
+    <button
+        class="my-3 w-full py-2 rounded-md text-gray-100 bg-gray-800 cursor-pointer outline-none hover:bg-gray-700 transition duration-400 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:bg-gray-700"
+        (click)="startCall()">Start Call</button>
+
     <!-- <span>Permission: {{permissionStatus()}}</span> -->
-    <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="remoteParticipants().length > 0 ? 'md:grid-cols-2' : 'grid-cols-1'">
+    <div class="grid grid-cols-1 gap-3 p-2 md:grid-cols-2">
         <video class="video" #videoElement autoplay playsInline></video>
-        @for(participants of remoteParticipants(); track $index) {
         <video class="video" #remoteVideoElement autoplay playsInline></video>
-        }
+        <!-- @for(participants of remoteParticipants(); track $index) {
+        <video class="video" #remoteVideoElement autoplay playsInline></video>
+        } -->
     </div>
     <div class="self-center absolute bottom-0">
 

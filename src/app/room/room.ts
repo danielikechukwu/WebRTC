@@ -1,6 +1,9 @@
-import { Component, OnInit, signal, ViewChild, ElementRef, effect } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, ElementRef, effect, inject } from '@angular/core';
 import { LocalStream } from './model/type';
 import { CommonModule } from '@angular/common';
+import { SignalingService } from '../service/signaling';
+import { WebrtcService } from '../service/webrtc';
+import { HotToastService } from '@ngxpert/hot-toast';
 
 @Component({
   selector: 'app-room',
@@ -9,15 +12,20 @@ import { CommonModule } from '@angular/common';
   styleUrl: './room.css',
 })
 export default class Room implements OnInit {
-  protected localStream = signal<LocalStream>({ name: 'Peter' });
-  protected remoteParticipants = signal<LocalStream[]>([{ name: 'Jasme' }]);
+  private signaling = inject(SignalingService);
+  private webrtc = inject(WebrtcService);
+  private _toast = inject(HotToastService);
+
   private mediaStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
+  private localStream: MediaStream | null = null;
 
   protected permissionStatus = signal<string>('Not requested');
   protected isCameraEnabled = signal<boolean>(false);
   protected isAudioEnabled = signal<boolean>(false);
   protected isSharingScreen = signal<boolean>(false);
+
+  protected username = localStorage.getItem('username') || '';
 
   combinedStream: MediaStream | null = null;
 
@@ -26,15 +34,16 @@ export default class Room implements OnInit {
   private micStream: MediaStream | null = null;
   private audioContext: AudioContext | null = null;
 
+  // New variables
+  peerConnection!: RTCPeerConnection;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('remoteVideoElement') remoteVideoElement!: ElementRef<HTMLVideoElement>;
 
-  ngOnInit(): void {
-    this.checkPermissions(); // Accessing permission
+  async ngOnInit() {
+    this.checkPermissions();
 
-    //this.requestMediaAccess(); // Permission to access media devices
-
-    this.createOffer();
+    this.signaling.connect('ws://192.168.0.3:8080');
+    this.signaling.onMessage((data) => this.handleSignalingData(data));
   }
 
   async checkPermissions(): Promise<any> {
@@ -57,10 +66,16 @@ export default class Room implements OnInit {
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         this.mediaStream = stream;
+        console.log('Local: ', this.mediaStream);
         this.videoElement.nativeElement.srcObject = this.mediaStream;
         this.videoElement.nativeElement.play();
         this.isCameraEnabled.set(true);
         this.isAudioEnabled.set(true);
+
+        // Add local tracks to the peer connection
+        this.mediaStream.getTracks().forEach((track) => {
+          this.webrtc.peerConnection.addTrack(track, this.mediaStream!);
+        });
       })
       .catch((err) => {
         alert(`An error occurred: ${err}`);
@@ -170,7 +185,7 @@ export default class Room implements OnInit {
   }
 
   leaveMeeting() {
-    console.log('Leave the meeting')
+    console.log('Leave the meeting');
   }
 
   stopMediaAccess(): void {
@@ -181,20 +196,89 @@ export default class Room implements OnInit {
     }
   }
 
-createOffer() {
+  // New setup
 
-  const myPeerConnection = new RTCPeerConnection();
+  async startCall() {
+    this.peerConnection = new RTCPeerConnection();
 
-  myPeerConnection.createOffer()
-  .then((offer) => {
-    myPeerConnection.setLocalDescription(offer);
-    console.log('Offer: ', offer)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this._toast.error(
+        'Camera/mic not available. Make sure you are using a modern browser on HTTPS or localhost.'
+      );
+      return;
+    }
+
+    // local stream
+    this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    this.localStream
+      .getTracks()
+      .forEach((track) => this.peerConnection.addTrack(track, this.localStream!));
+    this.videoElement.nativeElement.srcObject = this.localStream;
+    this.isCameraEnabled.set(true);
+    this.isAudioEnabled.set(true);
+
+    // remote stream
+    const remoteStream = new MediaStream();
+    this.remoteVideoElement.nativeElement.srcObject = remoteStream;
+    this.peerConnection.ontrack = (event) =>
+      event.streams[0].getTracks().forEach((t) => remoteStream.addTrack(t));
+
+    // ICE
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        this.signaling.send({ type: 'candidate', candidate: event.candidate });
+        console.log('ICE: ', event.candidate);
+      }
+    };
+
+    // create offer
+    const offer = await this.peerConnection.createOffer();
+    await this.peerConnection.setLocalDescription(offer);
+    this.signaling.send({ type: 'offer', offer });
+  }
+
+  async handleSignalingData(data: any) {
+    switch (data.type) {
+      case 'offer':
+        await this.handleOffer(data.offer);
+        break;
+      case 'answer':
+        await this.handleAnswer(data.answer);
+        break;
+      case 'candidate':
+        if (data.candidate) await this.peerConnection.addIceCandidate(data.candidate);
+        break;
+    }
+  }
+
+  async handleOffer(offer: RTCSessionDescriptionInit) {
+    this.peerConnection = new RTCPeerConnection();
+
+    this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+    this.localStream
+      .getTracks()
+      .forEach((track) => this.peerConnection.addTrack(track, this.localStream!));
+    this.videoElement.nativeElement.srcObject = this.localStream;
 
     this.remoteStream = new MediaStream();
     this.remoteVideoElement.nativeElement.srcObject = this.remoteStream;
-  })
-  .catch((err) => {
-    console.log('Offer Error: ', err)
-  })
-}
+    this.peerConnection.ontrack = (event) =>
+      event.streams[0].getTracks().forEach((t) => this.remoteStream?.addTrack(t));
+
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        this.signaling.send({ type: 'candidate', candidate: event.candidate });
+      }
+    };
+
+    await this.peerConnection.setRemoteDescription(offer);
+    const answer = await this.peerConnection.createAnswer();
+    await this.peerConnection.setLocalDescription(answer);
+    this.signaling.send({ type: 'answer', answer });
+  }
+
+  async handleAnswer(answer: RTCSessionDescriptionInit) {
+    await this.peerConnection.setRemoteDescription(answer);
+  }
 }

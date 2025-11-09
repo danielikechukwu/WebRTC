@@ -1,27 +1,30 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class Signaling {
-  private socket!: WebSocket;
+@Injectable({ providedIn: 'root' })
 
-  private message$ = new Subject<any>();
+export class SignalingService {
 
-  connect(serverUrl: string): void {
-    this.socket = new WebSocket(serverUrl);
+  private ws!: WebSocket;
+  private onMessageCallback!: (data: any) => void;
 
-    this.socket.onmessage = (event) => {
-      this.message$.next(JSON.parse(event.data));
+  connect(url: string): void {
+
+    this.ws = new WebSocket(url);
+
+    this.ws.onopen = () => console.log('Connected to signaling server');
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Message from server:', data);
+      if (this.onMessageCallback) this.onMessageCallback(data);
     };
+    this.ws.onerror = (err) => console.error('WebSocket error:', err);
   }
 
-  sendMessage(data: any): void {
-    this.socket.send(JSON.stringify(data));
+  send(data: any): void {
+    this.ws.send(JSON.stringify(data));
   }
 
-  onMessage(): Observable<any> {
-    return this.message$.asObservable();
+  onMessage(callback: (data: any) => void): void {
+    this.onMessageCallback = callback;
   }
 }
