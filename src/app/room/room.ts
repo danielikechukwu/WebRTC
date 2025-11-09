@@ -36,7 +36,7 @@ export default class Room implements OnInit {
   private pendingCandidates: RTCIceCandidateInit[] = [];
 
   protected localUsername = signal<string>('');
-protected remoteUsername = signal<string>('');
+  protected remoteUsername = signal<string>('');
 
   // New variables
   peerConnection!: RTCPeerConnection;
@@ -262,14 +262,16 @@ protected remoteUsername = signal<string>('');
 
   /** Handle incoming messages from signaling server */
   async handleSignalingData(data: any) {
-    console.log('Received signaling data:', data);
+    console.log('Received signaling data:', data);    
 
     switch (data.type) {
       case 'offer':
+        this.remoteUsername.set(data.username || 'Guest'); // Capture remote username
         await this.handleOffer(data.offer);
         break;
 
       case 'answer':
+        this.remoteUsername.set(data.username || 'Guest'); // Capture remote username
         await this.handleAnswer(data.answer);
         break;
 
@@ -283,12 +285,9 @@ protected remoteUsername = signal<string>('');
   }
 
   /** Handle received offer */
-  // async handleOffer(offer: RTCSessionDescriptionInit) {
-    async handleOffer(offer: any) {
+  async handleOffer(offer: RTCSessionDescriptionInit) {
     console.log('Handling received offer');
-console.log('Username in offer: ', offer.username);
-    this.remoteUsername.set(offer.username || 'Guest'); // Capture remote username
-
+    
     this.createPeerConnection();
 
     // Get local media
@@ -312,11 +311,9 @@ console.log('Username in offer: ', offer.username);
   }
 
   /** Handle received answer */
-  // async handleAnswer(answer: RTCSessionDescriptionInit) {
-    async handleAnswer(answer: any) {
+  async handleAnswer(answer: RTCSessionDescriptionInit) {
     console.log('Handling received answer');
-    console.log('Username in answer: ', answer.username);
-    this.remoteUsername.set(answer.username || 'Guest'); // Capture remote username
+
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 
     // Apply queued ICE candidates (if any)
