@@ -42,7 +42,8 @@ export default class Room implements OnInit {
   async ngOnInit() {
     this.checkPermissions();
 
-    this.signaling.connect('ws://192.168.0.3:8080');
+    // this.signaling.connect('ws://192.168.0.3:8080');
+    this.signaling.connect('https://webrtc-signaling-server-o8h1.onrender.com');
     this.signaling.onMessage((data) => this.handleSignalingData(data));
   }
 
