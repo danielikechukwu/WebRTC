@@ -36,7 +36,7 @@ export default class Room implements OnInit {
   private pendingCandidates: RTCIceCandidateInit[] = [];
   protected isRemoteConnected = signal<boolean>(false);
 
-  protected localUsername = signal<string>('');
+  protected localUsername = signal<string>(localStorage.getItem('username') ?? '');
   protected remoteUsername = signal<string>('');
 
   protected isMeetingStarted = signal<boolean>(false);
