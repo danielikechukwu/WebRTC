@@ -76,8 +76,7 @@
 
             <span class="flex flex-col items-center p-2">
                 @if(isLocalStream()) {
-                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer"
-                    (click)="isSharingScreen() ? stopScreenShare() : shareScreen()">
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer">
                     <img src="/icons/screen-share.svg" alt="screen-share">
                 </span>
                 @if(isSharingScreen()) {
