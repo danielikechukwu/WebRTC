@@ -59,7 +59,7 @@
 body {
   font-weight: 300;
   font-size: 13px;
-  @apply h-dvh w-full overflow-hidden font-inter text-sm text-gray-800 font-medium
+  @apply h-dvh w-full overflow-hidden font-inter text-sm text-gray-100 font-medium
 }
 
 .video {
@@ -67,5 +67,5 @@ body {
 }
 
 .form-control {
-  @apply border border-gray-300 p-2.5 rounded-md w-full outline-none focus:outline-transparent ring-0 focus:ring-0 focus:border-gray-800 transition duration-400 text-sm! placeholder:text-sm! placeholder:text-gray-500! placeholder:first-letter:capitalize!
+  @apply border border-gray-300 p-2.5 text-gray-500! rounded-md w-full outline-none focus:outline-transparent ring-0 focus:ring-0 focus:border-gray-800 transition duration-400 text-sm! placeholder:text-sm! placeholder:text-gray-500! placeholder:first-letter:capitalize!
 }

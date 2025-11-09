@@ -21,7 +21,8 @@ export default class Room implements OnInit {
 
   private mediaStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
-  private localStream: MediaStream | null = null;
+  protected localStream: MediaStream | null = null;
+  protected isLocalStream = signal<boolean>(false);
 
   protected permissionStatus = signal<string>('Not requested');
   protected isCameraEnabled = signal<boolean>(false);
@@ -68,50 +69,6 @@ export default class Room implements OnInit {
       );
     } catch (error) {
       console.log('Error checking permission: ', error);
-    }
-  }
-
-  // Requesting media access
-  requestFullAccess(): void {
-    if (this.mediaStream) this.stopMediaAccess();
-
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        this.mediaStream = stream;
-        console.log('Local: ', this.mediaStream);
-        this.videoElement.nativeElement.srcObject = this.mediaStream;
-        this.videoElement.nativeElement.play();
-        this.isCameraEnabled.set(true);
-        this.isAudioEnabled.set(true);
-
-        // Add local tracks to the peer connection
-        this.mediaStream.getTracks().forEach((track) => {
-          this.webrtc.peerConnection.addTrack(track, this.mediaStream!);
-        });
-      })
-      .catch((err) => {
-        alert(`An error occurred: ${err}`);
-      });
-  }
-
-  toggleVideo(): void {
-    if (this.mediaStream) {
-      const videoTracks = this.mediaStream.getVideoTracks();
-      if (videoTracks.length > 0) {
-        videoTracks[0].enabled = !videoTracks[0].enabled;
-        this.isCameraEnabled.set(videoTracks[0].enabled);
-      }
-    }
-  }
-
-  toggleAudio() {
-    if (this.mediaStream) {
-      const audioTracks = this.mediaStream.getAudioTracks();
-      if (audioTracks.length > 0) {
-        audioTracks[0].enabled = !audioTracks[0].enabled;
-        this.isAudioEnabled.set(audioTracks[0].enabled);
-      }
     }
   }
 
@@ -207,6 +164,32 @@ export default class Room implements OnInit {
 
   // New setup
 
+  // OFF/ON Audio
+  toggleAudio() {
+    if (!this.localStream) return;
+
+    this.isAudioEnabled.set(!this.isAudioEnabled());
+
+    this.localStream.getAudioTracks().forEach((track) => {
+      track.enabled = this.isAudioEnabled();
+    });
+
+    this._toast.success(`Microphone ${this.isAudioEnabled() ? 'enabled' : 'disabled'}`);
+  }
+
+  // OFF/ON Camera
+  toggleVideo(): void {
+    if (!this.localStream) return;
+
+    this.isCameraEnabled.set(!this.isCameraEnabled());
+
+    this.localStream.getVideoTracks().forEach((track) => {
+      track.enabled = this.isCameraEnabled();
+    });
+
+    this._toast.success(`Camera ${this.isCameraEnabled() ? 'enabled' : 'disabled'}`);
+  }
+
   /** Leave meeting */
   async leaveMeeting() {
     console.log('Leaving meeting...');
@@ -215,6 +198,7 @@ export default class Room implements OnInit {
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
       this.localStream = null;
+      this.isLocalStream.set(false);
     }
 
     // Close peer connection
@@ -264,6 +248,7 @@ export default class Room implements OnInit {
     this.videoElement.nativeElement.srcObject = this.localStream;
     this.isCameraEnabled.set(true);
     this.isAudioEnabled.set(true);
+    this.isLocalStream.set(true);
 
     // create offer and send
     const offer = await this.peerConnection!.createOffer();

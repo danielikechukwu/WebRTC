@@ -11,7 +11,8 @@
         <div class="relative">
             <video class="video" #videoElement autoplay playsInline></video>
             @if(localUsername()) {
-            <span class="text-gray-900 absolute bottom-0 ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{ localUsername()
+            <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
+                localUsername()
                 }}</span>
             }
         </div>
@@ -19,7 +20,8 @@
         <div class="relative" [class.hidden]="!isRemoteConnected()">
             <video class="video" #remoteVideoElement autoplay playsInline></video>
             @if(remoteUsername()) {
-            <span class="text-gray-900 absolute bottom-0 ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{ remoteUsername()
+            <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
+                remoteUsername()
                 }}</span>
             }
         </div>
@@ -29,35 +31,51 @@
         <div class="flex flex-row md:p-3 md:gap-3">
 
             <span class="flex flex-col items-center p-2">
+                @if(isLocalStream()) {
                 @if(isCameraEnabled()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleVideo()">
                     <img src="/icons/cam-on.svg" alt="cam-on">
                 </span>
+                <span class="text-gray-200">Cam</span>
                 }
                 @else {
-                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="requestFullAccess()">
-                    <img src="/icons/cam-off.svg" alt="cam-on">
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleVideo()">
+                    <img src="/icons/cam-off.svg" alt="cam-off">
                 </span>
-                }
-
                 <span class="text-gray-200">Cam</span>
+                }
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
+                    <img src="/icons/cam-off.svg" alt="cam-off">
+                </span>
+                <span class="text-gray-200">Cam</span>
+                }
             </span>
 
             <span class="flex flex-col items-center p-2">
+                @if(isLocalStream()) {
                 @if(isAudioEnabled()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleAudio()">
                     <img src="/icons/mic-on.svg" alt="mic-on">
                 </span>
                 }
                 @else {
-                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="requestFullAccess()">
-                    <img src="/icons/mic-off.svg" alt="mic-on">
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleAudio()">
+                    <img src="/icons/mic-off.svg" alt="mic-off">
+                </span>
+                }
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
+                    <img src="/icons/mic-off.svg" alt="mic-off">
                 </span>
                 }
                 <span class="text-gray-200">Mic</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
+                @if(isLocalStream()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer"
                     (click)="isSharingScreen() ? stopScreenShare() : shareScreen()">
                     <img src="/icons/screen-share.svg" alt="screen-share">
@@ -68,28 +86,52 @@
                 @else {
                 <span class="text-gray-200">Share</span>
                 }
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
+                    <img src="/icons/screen-share.svg" alt="screen-share">
+                </span>
+                <span class="text-gray-200">Share</span>
+                }
             </span>
 
             <span class="flex flex-col items-center p-2">
+                @if(isLocalStream()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="chat()">
                     <img src="/icons/chat.svg" alt="chat">
                 </span>
                 <span class="text-gray-200">Chat</span>
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
+                    <img src="/icons/chat.svg" alt="chat">
+                </span>
+                <span class="text-gray-200">Chat</span>
+                }
             </span>
 
             <span class="flex flex-col items-center p-2">
+                @if(isLocalStream()) {
                 <span class="p-3 rounded-xl mb-1 bg-[#F04438] cursor-pointer"
                     (click)="isLeavingMeeting.set(!isLeavingMeeting())">
                     <img src="/icons/waiting-room.svg" alt="waiting-room">
                 </span>
                 <span class="text-gray-200">Leave</span>
+                }
+                @else {
+                <span class="p-3 rounded-xl mb-1 bg-[#F04438]/50 cursor-not-allowed">
+                    <img src="/icons/waiting-room.svg" alt="waiting-room">
+                </span>
+                <span class="text-gray-200">Leave</span>
+                }
             </span>
 
         </div>
     </div>
 </div>
 
-<p-dialog header="Confirmation" [modal]="true" [(visible)]="isLeavingMeeting" [style]="{ width: '25rem' }">
+<p-dialog header="Confirmation" [modal]="true" [(visible)]="isLeavingMeeting"
+    [style]="{ width: '25rem', backgroundColor: 'white', color: 'oklch(21% 0.034 264.665)' }">
     <span class="p-text-secondary block mb-8">Are you sure that you want to proceed?</span>
     <div class="flex justify-between">
         <button class="outline-0 ring-0 py-2 px-5 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300 cursor-pointer"
