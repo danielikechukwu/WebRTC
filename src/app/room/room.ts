@@ -22,7 +22,6 @@ export default class Room implements OnInit {
   private mediaStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
   protected localStream: MediaStream | null = null;
-  protected isLocalStream = signal<boolean>(false);
 
   protected permissionStatus = signal<string>('Not requested');
   protected isCameraEnabled = signal<boolean>(false);
@@ -198,7 +197,6 @@ export default class Room implements OnInit {
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
       this.localStream = null;
-      this.isLocalStream.set(false);
     }
 
     // Close peer connection
@@ -248,7 +246,6 @@ export default class Room implements OnInit {
     this.videoElement.nativeElement.srcObject = this.localStream;
     this.isCameraEnabled.set(true);
     this.isAudioEnabled.set(true);
-    this.isLocalStream.set(true);
 
     // create offer and send
     const offer = await this.peerConnection!.createOffer();

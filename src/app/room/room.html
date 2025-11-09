@@ -31,7 +31,6 @@
         <div class="flex flex-row md:p-3 md:gap-3">
 
             <span class="flex flex-col items-center p-2">
-                @if(isLocalStream()) {
                 @if(isCameraEnabled()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleVideo()">
                     <img src="/icons/cam-on.svg" alt="cam-on">
@@ -44,17 +43,9 @@
                 </span>
                 <span class="text-gray-200">Cam</span>
                 }
-                }
-                @else {
-                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
-                    <img src="/icons/cam-off.svg" alt="cam-off">
-                </span>
-                <span class="text-gray-200">Cam</span>
-                }
             </span>
 
             <span class="flex flex-col items-center p-2">
-                @if(isLocalStream()) {
                 @if(isAudioEnabled()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleAudio()">
                     <img src="/icons/mic-on.svg" alt="mic-on">
@@ -65,17 +56,10 @@
                     <img src="/icons/mic-off.svg" alt="mic-off">
                 </span>
                 }
-                }
-                @else {
-                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
-                    <img src="/icons/mic-off.svg" alt="mic-off">
-                </span>
-                }
                 <span class="text-gray-200">Mic</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
-                @if(isLocalStream()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer">
                     <img src="/icons/screen-share.svg" alt="screen-share">
                 </span>
@@ -85,44 +69,21 @@
                 @else {
                 <span class="text-gray-200">Share</span>
                 }
-                }
-                @else {
-                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
-                    <img src="/icons/screen-share.svg" alt="screen-share">
-                </span>
-                <span class="text-gray-200">Share</span>
-                }
             </span>
 
             <span class="flex flex-col items-center p-2">
-                @if(isLocalStream()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="chat()">
                     <img src="/icons/chat.svg" alt="chat">
                 </span>
                 <span class="text-gray-200">Chat</span>
-                }
-                @else {
-                <span class="p-3 rounded-xl mb-1 bg-gray-500 cursor-not-allowed">
-                    <img src="/icons/chat.svg" alt="chat">
-                </span>
-                <span class="text-gray-200">Chat</span>
-                }
             </span>
 
             <span class="flex flex-col items-center p-2">
-                @if(isLocalStream()) {
                 <span class="p-3 rounded-xl mb-1 bg-[#F04438] cursor-pointer"
                     (click)="isLeavingMeeting.set(!isLeavingMeeting())">
                     <img src="/icons/waiting-room.svg" alt="waiting-room">
                 </span>
                 <span class="text-gray-200">Leave</span>
-                }
-                @else {
-                <span class="p-3 rounded-xl mb-1 bg-[#F04438]/50 cursor-not-allowed">
-                    <img src="/icons/waiting-room.svg" alt="waiting-room">
-                </span>
-                <span class="text-gray-200">Leave</span>
-                }
             </span>
 
         </div>
