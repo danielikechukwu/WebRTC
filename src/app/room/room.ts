@@ -1,13 +1,15 @@
 import { Component, OnInit, signal, ViewChild, ElementRef, effect, inject } from '@angular/core';
-import { LocalStream } from './model/type';
 import { CommonModule } from '@angular/common';
 import { SignalingService } from '../service/signaling';
 import { WebrtcService } from '../service/webrtc';
 import { HotToastService } from '@ngxpert/hot-toast';
+import { Dialog } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-room',
-  imports: [CommonModule],
+  imports: [CommonModule, Dialog, ButtonModule],
   templateUrl: './room.html',
   styleUrl: './room.css',
 })
@@ -15,6 +17,7 @@ export default class Room implements OnInit {
   private signaling = inject(SignalingService);
   private webrtc = inject(WebrtcService);
   private _toast = inject(HotToastService);
+  private _router = inject(Router);
 
   private mediaStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
@@ -40,9 +43,10 @@ export default class Room implements OnInit {
   protected remoteUsername = signal<string>('');
 
   protected isMeetingStarted = signal<boolean>(false);
+  protected isLeavingMeeting = signal<boolean>(false);
 
   // New variables
-  peerConnection!: RTCPeerConnection;
+  peerConnection!: RTCPeerConnection | null;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('remoteVideoElement') remoteVideoElement!: ElementRef<HTMLVideoElement>;
 
@@ -193,10 +197,6 @@ export default class Room implements OnInit {
     console.log('Chat');
   }
 
-  leaveMeeting() {
-    console.log('Leave the meeting');
-  }
-
   stopMediaAccess(): void {
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach((track) => track.stop());
@@ -206,6 +206,42 @@ export default class Room implements OnInit {
   }
 
   // New setup
+
+  /** Leave meeting */
+  async leaveMeeting() {
+    console.log('Leaving meeting...');
+
+    // Close all local media track (mic + camera)
+    if (this.localStream) {
+      this.localStream.getTracks().forEach((track) => track.stop());
+      this.localStream = null;
+    }
+
+    // Close peer connection
+    if (this.peerConnection) {
+      this.peerConnection.ontrack = null;
+      this.peerConnection.onicecandidate = null;
+      this.peerConnection.close();
+      this.peerConnection = null;
+    }
+
+    // Clear video element
+    if (this.videoElement.nativeElement) {
+      this.videoElement.nativeElement.srcObject = null;
+    }
+    if (this.remoteVideoElement) {
+      this.remoteVideoElement.nativeElement.srcObject = null;
+    }
+
+    this.isRemoteConnected.set(false);
+
+    // Notify others you leave
+    this.signaling.send({ type: 'leave', username: this.username });
+
+    this._toast.success('Existed from meeting');
+
+    this._router.navigate(['/']);
+  }
 
   /*** Start a call (creates offer) */
   async startCall() {
@@ -224,14 +260,14 @@ export default class Room implements OnInit {
     this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     this.localStream
       .getTracks()
-      .forEach((track) => this.peerConnection.addTrack(track, this.localStream!));
+      .forEach((track) => this.peerConnection!.addTrack(track, this.localStream!));
     this.videoElement.nativeElement.srcObject = this.localStream;
     this.isCameraEnabled.set(true);
     this.isAudioEnabled.set(true);
 
     // create offer and send
-    const offer = await this.peerConnection.createOffer();
-    await this.peerConnection.setLocalDescription(offer);
+    const offer = await this.peerConnection!.createOffer();
+    await this.peerConnection!.setLocalDescription(offer);
     this.signaling.send({ type: 'offer', offer, username: this.username });
 
     console.log('Sent offer to signaling server');
@@ -285,6 +321,11 @@ export default class Room implements OnInit {
         await this.handleCandidate(data.candidate);
         break;
 
+      case 'leave':
+        this._toast.success(`${data.username} left the meeting`);
+        this.handleRemoteLeave();
+        break;
+
       default:
         console.warn('Unknown signaling message type:', data.type);
     }
@@ -300,15 +341,15 @@ export default class Room implements OnInit {
     this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     this.localStream
       .getTracks()
-      .forEach((track) => this.peerConnection.addTrack(track, this.localStream!));
+      .forEach((track) => this.peerConnection!.addTrack(track, this.localStream!));
     this.videoElement.nativeElement.srcObject = this.localStream;
 
     // Set remote description
-    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(offer));
 
     // Create answer
-    const answer = await this.peerConnection.createAnswer();
-    await this.peerConnection.setLocalDescription(answer);
+    const answer = await this.peerConnection!.createAnswer();
+    await this.peerConnection!.setLocalDescription(answer);
     this.signaling.send({ type: 'answer', answer, username: this.username });
     console.log('Sent answer');
 
@@ -320,7 +361,7 @@ export default class Room implements OnInit {
   async handleAnswer(answer: RTCSessionDescriptionInit) {
     console.log('Handling received answer');
 
-    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+    await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(answer));
 
     // Apply queued ICE candidates (if any)
     this.flushPendingCandidates();
@@ -330,9 +371,9 @@ export default class Room implements OnInit {
   async handleCandidate(candidate: RTCIceCandidateInit) {
     if (!candidate) return;
 
-    if (this.peerConnection.remoteDescription) {
+    if (this.peerConnection!.remoteDescription) {
       try {
-        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        await this.peerConnection!.addIceCandidate(new RTCIceCandidate(candidate));
         console.log('Added ICE candidate');
       } catch (err) {
         console.error('Error adding ICE candidate:', err);
@@ -345,11 +386,11 @@ export default class Room implements OnInit {
 
   /** Apply queued ICE candidates once remoteDescription is ready */
   private async flushPendingCandidates() {
-    if (!this.peerConnection.remoteDescription) return;
+    if (!this.peerConnection!.remoteDescription) return;
 
     for (const candidate of this.pendingCandidates) {
       try {
-        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        await this.peerConnection!.addIceCandidate(new RTCIceCandidate(candidate));
         console.log('Added queued ICE candidate');
       } catch (err) {
         console.error('Error adding queued ICE candidate:', err);
@@ -357,5 +398,17 @@ export default class Room implements OnInit {
     }
 
     this.pendingCandidates = [];
+  }
+
+  /** Hand remote leave */
+  handleRemoteLeave() {
+    if (this.remoteVideoElement.nativeElement) {
+      this.remoteVideoElement.nativeElement.srcObject = null;
+    }
+    this.isRemoteConnected.set(false);
+    if (this.peerConnection) {
+      this.peerConnection.close();
+      this.peerConnection = null;
+    }
   }
 }

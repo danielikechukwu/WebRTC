@@ -40,7 +40,7 @@
                 </span>
                 }
 
-                <span>Cam</span>
+                <span class="text-gray-200">Cam</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
@@ -54,7 +54,7 @@
                     <img src="/icons/mic-off.svg" alt="mic-on">
                 </span>
                 }
-                <span>Mic</span>
+                <span class="text-gray-200">Mic</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
@@ -63,10 +63,10 @@
                     <img src="/icons/screen-share.svg" alt="screen-share">
                 </span>
                 @if(isSharingScreen()) {
-                <span>Stop</span>
+                <span class="text-gray-200">Stop</span>
                 }
                 @else {
-                <span>Share</span>
+                <span class="text-gray-200">Share</span>
                 }
             </span>
 
@@ -74,16 +74,27 @@
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="chat()">
                     <img src="/icons/chat.svg" alt="chat">
                 </span>
-                <span>Chat</span>
+                <span class="text-gray-200">Chat</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
-                <span class="p-3 rounded-xl mb-1 bg-[#F04438] cursor-pointer" (click)="leaveMeeting()">
+                <span class="p-3 rounded-xl mb-1 bg-[#F04438] cursor-pointer"
+                    (click)="isLeavingMeeting.set(!isLeavingMeeting())">
                     <img src="/icons/waiting-room.svg" alt="waiting-room">
                 </span>
-                <span>Leave</span>
+                <span class="text-gray-200">Leave</span>
             </span>
 
         </div>
     </div>
 </div>
+
+<p-dialog header="Confirmation" [modal]="true" [(visible)]="isLeavingMeeting" [style]="{ width: '25rem' }">
+    <span class="p-text-secondary block mb-8">Are you sure that you want to proceed?</span>
+    <div class="flex justify-between">
+        <button class="outline-0 ring-0 py-2 px-5 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300 cursor-pointer"
+            (click)="isLeavingMeeting.set(!isLeavingMeeting())">Cancel</button>
+        <button class="outline-0 ring-0 py-2 px-5 rounded-md bg-gray-800 text-gray-200 hover:bg-gray-700 cursor-pointer"
+            (click)="leaveMeeting()">Proceed</button>
+    </div>
+</p-dialog>
