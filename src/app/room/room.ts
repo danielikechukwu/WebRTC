@@ -35,6 +35,9 @@ export default class Room implements OnInit {
   private audioContext: AudioContext | null = null;
   private pendingCandidates: RTCIceCandidateInit[] = [];
 
+  protected localUsername = signal<string>('');
+protected remoteUsername = signal<string>('');
+
   // New variables
   peerConnection!: RTCPeerConnection;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
@@ -226,7 +229,7 @@ export default class Room implements OnInit {
     // create offer and send
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
-    this.signaling.send({ type: 'offer', offer });
+    this.signaling.send({ type: 'offer', offer, username: this.username });
 
     console.log('Sent offer to signaling server');
   }
@@ -280,8 +283,11 @@ export default class Room implements OnInit {
   }
 
   /** Handle received offer */
-  async handleOffer(offer: RTCSessionDescriptionInit) {
+  // async handleOffer(offer: RTCSessionDescriptionInit) {
+    async handleOffer(offer: any) {
     console.log('Handling received offer');
+
+    this.remoteUsername.set(offer.username || 'Guest'); // Capture remote username
 
     this.createPeerConnection();
 
@@ -298,7 +304,7 @@ export default class Room implements OnInit {
     // Create answer
     const answer = await this.peerConnection.createAnswer();
     await this.peerConnection.setLocalDescription(answer);
-    this.signaling.send({ type: 'answer', answer });
+    this.signaling.send({ type: 'answer', answer, username: this.username });
     console.log('Sent answer');
 
     // Apply any queued ICE candidates that arrived early
@@ -306,8 +312,10 @@ export default class Room implements OnInit {
   }
 
   /** Handle received answer */
-  async handleAnswer(answer: RTCSessionDescriptionInit) {
-    console.log('📡 Handling received answer');
+  // async handleAnswer(answer: RTCSessionDescriptionInit) {
+    async handleAnswer(answer: any) {
+    console.log('Handling received answer');
+    this.remoteUsername.set(answer.username || 'Guest'); // Capture remote username
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 
     // Apply queued ICE candidates (if any)
