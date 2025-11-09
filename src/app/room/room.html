@@ -5,7 +5,7 @@
         (click)="startCall()">Start Call</button>
 
     <!-- <span>Permission: {{permissionStatus()}}</span> -->
-    <div class="grid grid-cols-1 gap-3 p-2 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="isRemoteConnected() ? 'md:grid-cols-2' : 'md:grid-cols-1'">
         <div class="relative">
             <video class="video" #videoElement autoplay playsInline></video>
             @if(localUsername()) {

@@ -265,7 +265,7 @@ export default class Room implements OnInit {
 
   /** Handle incoming messages from signaling server */
   async handleSignalingData(data: any) {
-    console.log('Received signaling data:', data);    
+    console.log('Received signaling data:', data);
 
     switch (data.type) {
       case 'offer':
@@ -290,7 +290,7 @@ export default class Room implements OnInit {
   /** Handle received offer */
   async handleOffer(offer: RTCSessionDescriptionInit) {
     console.log('Handling received offer');
-    
+
     this.createPeerConnection();
 
     // Get local media
