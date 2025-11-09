@@ -14,19 +14,13 @@
             }
         </div>
 
-        @if(isRemoteConnected()) {
-        <div class="relative">
+        <div class="relative" [class.hidden]="!isRemoteConnected()">
             <video class="video" #remoteVideoElement autoplay playsInline></video>
             @if(remoteUsername()) {
             <span class="text-gray-900 absolute bottom-0 ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{ remoteUsername()
                 }}</span>
             }
         </div>
-        }
-
-        <!-- @for(participants of remoteParticipants(); track $index) {
-        <video class="video" #remoteVideoElement autoplay playsInline></video>
-        } -->
     </div>
     <div class="self-center absolute bottom-0">
 
