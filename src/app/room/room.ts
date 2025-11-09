@@ -33,6 +33,7 @@ export default class Room implements OnInit {
   private screenStream: MediaStream | null = null;
   private micStream: MediaStream | null = null;
   private audioContext: AudioContext | null = null;
+  private pendingCandidates: RTCIceCandidateInit[] = [];
 
   // New variables
   peerConnection!: RTCPeerConnection;
@@ -200,8 +201,11 @@ export default class Room implements OnInit {
 
   // New setup
 
+  /*** Start a call (creates offer) */
   async startCall() {
-    this.peerConnection = new RTCPeerConnection();
+    console.log('Starting call...');
+
+    this.createPeerConnection(); // Create peer connection.
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       this._toast.error(
@@ -219,69 +223,127 @@ export default class Room implements OnInit {
     this.isCameraEnabled.set(true);
     this.isAudioEnabled.set(true);
 
-    // remote stream
-    const remoteStream = new MediaStream();
-    this.remoteVideoElement.nativeElement.srcObject = remoteStream;
-    this.peerConnection.ontrack = (event) =>
-      event.streams[0].getTracks().forEach((t) => remoteStream.addTrack(t));
-
-        // create offer
+    // create offer and send
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
     this.signaling.send({ type: 'offer', offer });
 
-    // ICE
-    this.peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        this.signaling.send({ type: 'candidate', candidate: event.candidate });
-        console.log('ICE: ', event.candidate);
-      }
-    };
-
+    console.log('Sent offer to signaling server');
   }
 
+  /** Create peer connection and handle tracks + ICE candidates */
+  private createPeerConnection() {
+    this.peerConnection = new RTCPeerConnection();
+
+    // Setup remote stream
+    this.remoteStream = new MediaStream();
+    this.remoteVideoElement.nativeElement.srcObject = this.remoteStream;
+
+    this.peerConnection.ontrack = (event) => {
+      event.streams[0].getTracks().forEach((track) => {
+        this.remoteStream?.addTrack(track);
+      });
+      console.log('Remote track received');
+    };
+
+    // Send ICE candidates to signaling server
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        console.log('Sending ICE candidate:', event.candidate);
+        this.signaling.send({ type: 'candidate', candidate: event.candidate });
+      } else {
+        console.log('ICE gathering complete');
+      }
+    };
+  }
+
+  /** Handle incoming messages from signaling server */
   async handleSignalingData(data: any) {
+    console.log('Received signaling data:', data);
+
     switch (data.type) {
       case 'offer':
         await this.handleOffer(data.offer);
         break;
+
       case 'answer':
         await this.handleAnswer(data.answer);
         break;
+
       case 'candidate':
-        if (data.candidate) await this.peerConnection.addIceCandidate(data.candidate);
+        await this.handleCandidate(data.candidate);
         break;
+
+      default:
+        console.warn('Unknown signaling message type:', data.type);
     }
   }
 
+  /** Handle received offer */
   async handleOffer(offer: RTCSessionDescriptionInit) {
-    this.peerConnection = new RTCPeerConnection();
+    console.log('Handling received offer');
 
+    this.createPeerConnection();
+
+    // Get local media
     this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-
     this.localStream
       .getTracks()
       .forEach((track) => this.peerConnection.addTrack(track, this.localStream!));
     this.videoElement.nativeElement.srcObject = this.localStream;
 
-    this.remoteStream = new MediaStream();
-    this.remoteVideoElement.nativeElement.srcObject = this.remoteStream;
-    this.peerConnection.ontrack = (event) =>
-      event.streams[0].getTracks().forEach((t) => this.remoteStream?.addTrack(t));
+    // Set remote description
+    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
 
-    this.peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        this.signaling.send({ type: 'candidate', candidate: event.candidate });
-      }
-    };
-
-    await this.peerConnection.setRemoteDescription(offer);
+    // Create answer
     const answer = await this.peerConnection.createAnswer();
     await this.peerConnection.setLocalDescription(answer);
     this.signaling.send({ type: 'answer', answer });
+    console.log('Sent answer');
+
+    // Apply any queued ICE candidates that arrived early
+    this.flushPendingCandidates();
   }
 
+  /** Handle received answer */
   async handleAnswer(answer: RTCSessionDescriptionInit) {
-    await this.peerConnection.setRemoteDescription(answer);
+    console.log('📡 Handling received answer');
+    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+
+    // Apply queued ICE candidates (if any)
+    this.flushPendingCandidates();
+  }
+
+  /** Handle ICE candidates safely */
+  async handleCandidate(candidate: RTCIceCandidateInit) {
+    if (!candidate) return;
+
+    if (this.peerConnection.remoteDescription) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log('Added ICE candidate');
+      } catch (err) {
+        console.error('Error adding ICE candidate:', err);
+      }
+    } else {
+      console.warn('Remote description not set yet, queueing ICE candidate');
+      this.pendingCandidates.push(candidate);
+    }
+  }
+
+  /** Apply queued ICE candidates once remoteDescription is ready */
+  private async flushPendingCandidates() {
+    if (!this.peerConnection.remoteDescription) return;
+
+    for (const candidate of this.pendingCandidates) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log('Added queued ICE candidate');
+      } catch (err) {
+        console.error('Error adding queued ICE candidate:', err);
+      }
+    }
+
+    this.pendingCandidates = [];
   }
 }
