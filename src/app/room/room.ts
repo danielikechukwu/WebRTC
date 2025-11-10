@@ -257,6 +257,13 @@ export default class Room implements OnInit {
 
   /** Create peer connection and handle tracks + ICE candidates */
   private createPeerConnection() {
+    // Ensure any old connection is gone
+    if (this.peerConnection) {
+      this.peerConnection.ontrack = null;
+      this.peerConnection.onicecandidate = null;
+      this.peerConnection.close();
+    }
+
     this.peerConnection = new RTCPeerConnection();
 
     // Setup remote stream
