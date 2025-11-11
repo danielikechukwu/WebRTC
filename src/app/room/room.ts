@@ -220,6 +220,9 @@ export default class Room implements OnInit {
     // Notify others you leave
     this.signaling.send({ type: 'leave', username: this.username });
 
+    // Close connection
+    this.signaling.disconnect();
+
     this._toast.success('Existed from meeting');
 
     this._router.navigate(['/']);
@@ -257,13 +260,6 @@ export default class Room implements OnInit {
 
   /** Create peer connection and handle tracks + ICE candidates */
   private createPeerConnection() {
-    // Ensure any old connection is gone
-    if (this.peerConnection) {
-      this.peerConnection.ontrack = null;
-      this.peerConnection.onicecandidate = null;
-      this.peerConnection.close();
-    }
-
     this.peerConnection = new RTCPeerConnection();
 
     // Setup remote stream
