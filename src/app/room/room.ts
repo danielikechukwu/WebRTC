@@ -46,7 +46,7 @@ export default class Room implements OnInit {
   protected isLeavingMeeting = signal<boolean>(false);
 
   // New variables
-  peerConnection!: RTCPeerConnection | null;
+  peerConnection: RTCPeerConnection | undefined;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('remoteVideoElement') remoteVideoElement!: ElementRef<HTMLVideoElement>;
 
@@ -153,13 +153,7 @@ export default class Room implements OnInit {
     console.log('Chat');
   }
 
-  stopMediaAccess(): void {
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach((track) => track.stop());
-      this.mediaStream = null;
-      this.permissionStatus.set('Access stopped');
-    }
-  }
+
 
   // New setup
 
@@ -204,7 +198,7 @@ export default class Room implements OnInit {
       this.peerConnection.ontrack = null;
       this.peerConnection.onicecandidate = null;
       this.peerConnection.close();
-      this.peerConnection = null;
+      this.peerConnection = undefined;
     }
 
     // Clear video element
@@ -223,13 +217,14 @@ export default class Room implements OnInit {
     // Close connection
     this.signaling.disconnect();
 
-    this._toast.success('Existed from meeting');
+    this._toast.success('You left the meeting');
 
     this._router.navigate(['/']);
   }
 
   /*** Start a call (creates offer) */
   async startCall() {
+
     console.log('Starting call...');
 
     this.createPeerConnection(); // Create peer connection.
@@ -245,7 +240,7 @@ export default class Room implements OnInit {
     this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     this.localStream
       .getTracks()
-      .forEach((track) => this.peerConnection!.addTrack(track, this.localStream!));
+      .forEach((track) => this.peerConnection?.addTrack(track, this.localStream!));
     this.videoElement.nativeElement.srcObject = this.localStream;
     this.isCameraEnabled.set(true);
     this.isAudioEnabled.set(true);
@@ -260,7 +255,11 @@ export default class Room implements OnInit {
 
   /** Create peer connection and handle tracks + ICE candidates */
   private createPeerConnection() {
-    this.peerConnection = new RTCPeerConnection();
+
+    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    this.peerConnection = new RTCPeerConnection(configuration);
+    //this.peerConnection = new RTCPeerConnection();
 
     // Setup remote stream
     this.remoteStream = new MediaStream();
@@ -393,7 +392,7 @@ export default class Room implements OnInit {
     this.isRemoteConnected.set(false);
     if (this.peerConnection) {
       this.peerConnection.close();
-      this.peerConnection = null;
+      this.peerConnection = undefined;
     }
   }
 }

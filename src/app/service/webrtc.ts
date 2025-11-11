@@ -16,8 +16,11 @@ export class WebrtcService {
   };
 
 public createPeerConnection(onIceCandidate: (candidate: RTCIceCandidateInit) => void): void {
+
   const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
   this.peerConnection = new RTCPeerConnection(configuration);
+  
   this.remoteStream = new MediaStream();
 
   // Add ICE candidate handler
