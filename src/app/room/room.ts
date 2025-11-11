@@ -153,8 +153,6 @@ export default class Room implements OnInit {
     console.log('Chat');
   }
 
-
-
   // New setup
 
   // OFF/ON Audio
@@ -224,7 +222,6 @@ export default class Room implements OnInit {
 
   /*** Start a call (creates offer) */
   async startCall() {
-
     console.log('Starting call...');
 
     this.createPeerConnection(); // Create peer connection.
@@ -255,7 +252,6 @@ export default class Room implements OnInit {
 
   /** Create peer connection and handle tracks + ICE candidates */
   private createPeerConnection() {
-
     const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
     this.peerConnection = new RTCPeerConnection(configuration);
@@ -272,6 +268,13 @@ export default class Room implements OnInit {
         this.isRemoteConnected.set(true);
         this.isMeetingStarted.set(true);
       });
+      console.log('Remote track event:', event);
+      console.log('Streams:', event.streams);
+      if (event.streams && event.streams[0]) {
+        const remoteStream = event.streams[0];
+        this.remoteVideoElement.nativeElement.srcObject = remoteStream;
+        this.isRemoteConnected.set(true);
+      }
       console.log('Remote track received');
     };
 
