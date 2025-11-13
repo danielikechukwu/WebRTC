@@ -7,7 +7,8 @@
     } -->
 
     <!-- <span>Permission: {{permissionStatus()}}</span> -->
-    <div class="grid grid-cols-1 gap-1 p-2 border border-red-600 h-7/10 md:h-5/10 relative" [ngClass]="isRemoteConnected() ? 'md:grid-cols-2' : 'md:grid-cols-1'">
+    <div class="grid grid-cols-1 gap-1 p-2 border border-red-600 h-7/10 md:h-5/10 relative"
+        [ngClass]="isRemoteConnected() ? 'md:grid-cols-2' : 'md:grid-cols-1'">
 
         <div class="relative h-full">
             <video class="video" #videoElement autoplay playsInline></video>
@@ -18,20 +19,25 @@
             }
         </div>
 
-        <!-- <div class="absolute md:relative bottom-7  right-5 w-50">
-        <div class="relative">
-            <video class="video bg-white shadow-2xl h-80!" #remoteVideoElement autoplay playsInline></video>
-            @if(remoteUsername()) {
-            <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
-                remoteUsername()
-                }}</span>
-            }
+        @if(isVisible()) {
+        <div class="absolute md:relative bottom-7 right-7 w-50" animate.enter="remote-enter"
+            animate.leave="remote-leave">
+            <div class="relative">
+                <video class="video bg-white shadow-2xl h-80!" #remoteVideoElement autoplay playsInline></video>
+                @if(remoteUsername()) {
+                <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
+                    remoteUsername()
+                    }}</span>
+                }
+            </div>
         </div>
-        </div> -->
+        }
 
 
 
-                <!-- <div class="relative border border-gray-700">
+
+
+        <!-- <div class="relative border border-gray-700">
             <video class="video" #videoElement autoplay playsInline></video>
             @if(localUsername()) {
             <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
@@ -92,7 +98,7 @@
                 <span class="text-gray-200 md:text-xs">Mic</span>
             </span>
 
-                        <span class="flex flex-col items-center p-2">
+            <span class="flex flex-col items-center p-2">
                 @if(isSharingScreen()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer">
                     <img src="/icons/screen-share.svg" alt="share-screen">

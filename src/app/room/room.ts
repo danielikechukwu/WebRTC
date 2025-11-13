@@ -43,6 +43,8 @@ export default class Room implements OnInit {
   protected isMeetingStarted = signal<boolean>(false);
   protected isLeavingMeeting = signal<boolean>(false);
 
+  protected isVisible = signal<boolean>(true);
+
   // New variables
   peerConnection: RTCPeerConnection | undefined;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
