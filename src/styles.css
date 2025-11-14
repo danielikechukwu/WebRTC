@@ -63,7 +63,7 @@ body {
 }
 
 .video {
-  @apply w-full h-full md:h-80 bg-gray-100 rounded-2xl object-fill;
+  @apply w-full h-full bg-gray-100 rounded-2xl object-fill;
 }
 
 .form-control {

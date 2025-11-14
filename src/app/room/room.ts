@@ -35,15 +35,13 @@ export default class Room implements OnInit {
   private micStream: MediaStream | null = null;
   private audioContext: AudioContext | null = null;
   private pendingCandidates: RTCIceCandidateInit[] = [];
-  protected isRemoteConnected = signal<boolean>(false);
+  protected isRemoteConnected = signal<boolean>(true);
 
   protected localUsername = signal<string>(localStorage.getItem('username') ?? '');
   protected remoteUsername = signal<string>('');
 
   protected isMeetingStarted = signal<boolean>(false);
   protected isLeavingMeeting = signal<boolean>(false);
-
-  protected isVisible = signal<boolean>(true);
 
   // New variables
   peerConnection: RTCPeerConnection | undefined;
