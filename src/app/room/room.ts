@@ -15,11 +15,9 @@ import { Router } from '@angular/router';
 })
 export default class Room implements OnInit {
   private signaling = inject(SignalingService);
-  private webrtc = inject(WebrtcService);
   private _toast = inject(HotToastService);
   private _router = inject(Router);
 
-  private mediaStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
   protected localStream: MediaStream | null = null;
 
@@ -37,7 +35,7 @@ export default class Room implements OnInit {
   private micStream: MediaStream | null = null;
   private audioContext: AudioContext | null = null;
   private pendingCandidates: RTCIceCandidateInit[] = [];
-  protected isRemoteConnected = signal<boolean>(false);
+  protected isRemoteConnected = signal<boolean>(true);
 
   protected localUsername = signal<string>(localStorage.getItem('username') ?? '');
   protected remoteUsername = signal<string>('');
@@ -54,9 +52,9 @@ export default class Room implements OnInit {
     this.checkPermissions(); // Check for media permission
 
     // this.signaling.connect('ws://192.168.0.3:8080');
-    this.signaling.connect('https://webrtc-signaling-server-o8h1.onrender.com');
+    // this.signaling.connect('https://webrtc-signaling-server-o8h1.onrender.com');
 
-    this.signaling.onMessage((data) => this.handleSignalingData(data));
+    // this.signaling.onMessage((data) => this.handleSignalingData(data));
   }
 
   async checkPermissions(): Promise<any> {

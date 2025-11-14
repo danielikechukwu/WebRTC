@@ -1,14 +1,15 @@
-<div class="h-full bg-gray-800 flex flex-col justify-center">
+<div class="h-full bg-gray-800 flex flex-col justify-center md:justify-start">
 
-    @if(!isMeetingStarted()) {
+    <!-- @if(!isMeetingStarted()) {
     <button
         class="my-3 w-50 py-2 rounded-md text-gray-800 bg-gray-100 cursor-pointer outline-none hover:bg-gray-500 hover:text-gray-200 transition duration-700 self-center absolute top-22"
         (click)="startCall()">Start Call</button>
-    }
+    } -->
+     
+    <div class="grid grid-cols-1 gap-1 p-2 h-7/10 md:h-8/10 relative"
+        [ngClass]="isRemoteConnected() ? 'md:grid-cols-2' : 'md:grid-cols-1'">
 
-    <!-- <span>Permission: {{permissionStatus()}}</span> -->
-    <div class="grid grid-cols-1 gap-3 p-2" [ngClass]="isRemoteConnected() ? 'md:grid-cols-2' : 'md:grid-cols-1'">
-        <div class="relative">
+        <div class="relative h-full">
             <video class="video" #videoElement autoplay playsInline></video>
             @if(localUsername()) {
             <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
@@ -17,31 +18,64 @@
             }
         </div>
 
-        <div class="relative" [class.hidden]="!isRemoteConnected()">
+        @if(isRemoteConnected()) {
+        <div class="absolute md:static md:w-full bottom-7 right-7 w-50" animate.enter="remote-enter"
+            animate.leave="remote-leave">
+            <div class="relative h-full">
+                <video class="video bg-white md:h-full! h-80! shadow-2xl md:shadow-none" #remoteVideoElement autoplay playsInline></video>
+                @if(remoteUsername()) {
+                <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
+                    remoteUsername()
+                    }}</span>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- <div class="relative border border-gray-700">
+            <video class="video" #videoElement autoplay playsInline></video>
+            @if(localUsername()) {
+            <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
+                localUsername()
+                }}</span>
+            }
+        </div> -->
+
+        <!-- <div class="relative" [class.hidden]="!isRemoteConnected()">
             <video class="video" #remoteVideoElement autoplay playsInline></video>
             @if(remoteUsername()) {
             <span class="text-gray-900 absolute bottom-0 capitalize ml-4 mb-4 p-1 rounded-2xl px-4 bg-gray-300">{{
                 remoteUsername()
                 }}</span>
             }
-        </div>
+        </div> -->
     </div>
+
     <div class="self-center absolute bottom-0">
 
-        <div class="flex flex-row md:p-3 md:gap-3">
+        <div class="flex flex-row md:p-1 md:gap-0">
+
+            <span class="flex flex-col items-center p-2">
+                @if(!isMeetingStarted()) {
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="startCall()">
+                    <img src="/icons/play.svg" alt="play">
+                </span>
+                <span class="text-gray-200 md:text-xs">Call</span>
+                }
+            </span>
 
             <span class="flex flex-col items-center p-2">
                 @if(isCameraEnabled()) {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleVideo()">
                     <img src="/icons/cam-on.svg" alt="cam-on">
                 </span>
-                <span class="text-gray-200">Cam</span>
+                <span class="text-gray-200 md:text-xs">Cam</span>
                 }
                 @else {
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="toggleVideo()">
                     <img src="/icons/cam-off.svg" alt="cam-off">
                 </span>
-                <span class="text-gray-200">Cam</span>
+                <span class="text-gray-200 md:text-xs">Cam</span>
                 }
             </span>
 
@@ -56,18 +90,21 @@
                     <img src="/icons/mic-off.svg" alt="mic-off">
                 </span>
                 }
-                <span class="text-gray-200">Mic</span>
+                <span class="text-gray-200 md:text-xs">Mic</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
-                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer">
-                    <img src="/icons/screen-share.svg" alt="screen-share">
-                </span>
                 @if(isSharingScreen()) {
-                <span class="text-gray-200">Stop</span>
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer">
+                    <img src="/icons/screen-share.svg" alt="share-screen">
+                </span>
+                <span class="text-gray-200 md:text-xs">Stop</span>
                 }
                 @else {
-                <span class="text-gray-200">Share</span>
+                <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer">
+                    <img src="/icons/screen-share.svg" width="24" height="24" alt="share-screen">
+                </span>
+                <span class="text-gray-200 md:text-xs">Start</span>
                 }
             </span>
 
@@ -75,7 +112,7 @@
                 <span class="p-3 rounded-xl mb-1 bg-gray-900 cursor-pointer" (click)="chat()">
                     <img src="/icons/chat.svg" alt="chat">
                 </span>
-                <span class="text-gray-200">Chat</span>
+                <span class="text-gray-200 md:text-xs">Chat</span>
             </span>
 
             <span class="flex flex-col items-center p-2">
@@ -83,11 +120,12 @@
                     (click)="isLeavingMeeting.set(!isLeavingMeeting())">
                     <img src="/icons/waiting-room.svg" alt="waiting-room">
                 </span>
-                <span class="text-gray-200">Leave</span>
+                <span class="text-gray-200 md:text-xs">Leave</span>
             </span>
 
         </div>
     </div>
+
 </div>
 
 <p-dialog header="Confirmation" [modal]="true" [(visible)]="isLeavingMeeting"
