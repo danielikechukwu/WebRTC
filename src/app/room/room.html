@@ -18,8 +18,7 @@
             }
         </div>
 
-        @if(isRemoteConnected()) {
-        <div class="absolute md:static md:w-full bottom-7 right-7 w-50" animate.enter="remote-enter"
+        <div class="absolute md:static md:w-full bottom-7 right-7 w-50" [class.hidden]="!isRemoteConnected()" animate.enter="remote-enter"
             animate.leave="remote-leave">
             <div class="relative h-full">
                 <video class="video bg-white md:h-full! h-80! shadow-2xl md:shadow-none" #remoteVideoElement autoplay playsInline></video>
@@ -30,7 +29,6 @@
                 }
             </div>
         </div>
-        }
 
         <!-- <div class="relative border border-gray-700">
             <video class="video" #videoElement autoplay playsInline></video>
