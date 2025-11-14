@@ -52,9 +52,9 @@ export default class Room implements OnInit {
     this.checkPermissions(); // Check for media permission
 
     // this.signaling.connect('ws://192.168.0.3:8080');
-    // this.signaling.connect('https://webrtc-signaling-server-o8h1.onrender.com');
+    this.signaling.connect('https://webrtc-signaling-server-o8h1.onrender.com');
 
-    // this.signaling.onMessage((data) => this.handleSignalingData(data));
+    this.signaling.onMessage((data) => this.handleSignalingData(data));
   }
 
   async checkPermissions(): Promise<any> {
